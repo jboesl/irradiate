@@ -24,9 +24,9 @@ public abstract class Watchable<T> implements IWatchable<T>, IEmitable<T>
   @Override
   public IPortion<T> watch()
   {
-    SimplePortionEmitable<T> portionEmitable = new SimplePortionEmitable<>(new Portion<>(this::getCurrentValue));
+    SimplePortionEmitable<T> portionEmitable = new SimplePortionEmitable<>(emitable -> emitable.emitValue(getCurrentValue()));
     emitters.add(portionEmitable);
-    return portionEmitable.getPortion();
+    return new Portion<>(portionEmitable);
   }
 
   protected abstract T getCurrentValue();

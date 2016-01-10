@@ -1,6 +1,5 @@
 package de.adito.irradiate;
 
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;

@@ -3,7 +3,6 @@ package de.adito.irradiate;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.awt.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -25,9 +24,11 @@ public class Test_Watchable
 
     IPortion<String> watchX = x.watch()
         .filter(integer -> integer > 500)
-        .map(integer -> integer == null ? null : Integer.toHexString(integer * 63).toUpperCase())
-        .value(str -> countX.incrementAndGet())
-        .value(str -> System.out.println("x: " + str));
+        .map(integer -> integer == null ? null : Integer.toHexString(integer * 63).toUpperCase());
+    watchX.value(str -> countX.incrementAndGet());
+    watchX.value(str -> System.out.println("x: " + str))
+        .error(Throwable::printStackTrace);
+
     IPortion<Integer> watchY = y.watch()
         .value(integer -> countY.incrementAndGet())
         .value(integer -> System.out.println("y: " + integer));
@@ -40,7 +41,7 @@ public class Test_Watchable
 
     y.setValue(960);
 
-    Assert.assertEquals(2, countX.get());
+    Assert.assertEquals(1, countX.get());
     Assert.assertEquals(1, countY.get());
   }
 

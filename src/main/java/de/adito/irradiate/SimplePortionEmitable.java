@@ -1,20 +1,20 @@
 package de.adito.irradiate;
 
-import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * PortionEmitable-Impl
  */
 class SimplePortionEmitable<T> extends PortionEmitable<T, T>
 {
-  public SimplePortionEmitable(Portion<T> pPortion)
+  public SimplePortionEmitable(Consumer<IEmitable<T>> pEmissionSource)
   {
-    super(pPortion);
+    super(pEmissionSource);
   }
 
   @Override
-  protected void emitValue(T pValue, Optional<IEmitable<T>> pOptionalEmitable)
+  protected void emitValue(IEmitable<T> pEmitable, T pValue)
   {
-    pOptionalEmitable.ifPresent(emitable -> emitable.emitValue(pValue));
+    pEmitable.emitValue(pValue);
   }
 }
