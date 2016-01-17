@@ -20,4 +20,6 @@ public interface IPortion<T>
 
   <R> IPortion<R> map(Function<? super T, ? extends R> pFunction);
 
+  <R> IPortion<R> transform(IPortionTransformer<T, R> pPortionTransformer);
+
 }

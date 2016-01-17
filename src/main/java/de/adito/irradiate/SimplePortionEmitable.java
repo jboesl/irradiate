@@ -13,7 +13,7 @@ class SimplePortionEmitable<T> extends PortionEmitable<T, T>
   }
 
   @Override
-  protected void emitValue(IEmitable<T> pEmitable, T pValue)
+  public void emitValue(IEmitable<T> pEmitable, T pValue)
   {
     pEmitable.emitValue(pValue);
   }

@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 /**
  * IEmitable-Impl
  */
-abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R>
+abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R>, IPortionTransformer<T, R>
 {
   private Consumer<IEmitable<T>> emissionSource;
   private AtomicReference<IEmitable<R>> emissionTarget = new AtomicReference<>();
@@ -53,12 +53,12 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
           }
 
           @Override
-          protected void emitValue(IEmitable<S> pEmitable, R pValue)
+          public void emitValue(IEmitable<S> pEmitable, R pValue)
           {
           }
 
           @Override
-          protected void emitError(IEmitable<S> pEmitable, Throwable pThrowable)
+          public void emitError(IEmitable<S> pEmitable, Throwable pThrowable)
           {
           }
         });
@@ -82,14 +82,6 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
         PortionEmitable.this.emitError(pEmitable, pThrowable);
       }
     });
-  }
-
-  protected abstract void emitValue(IEmitable<R> pEmitable, T pValue);
-
-  protected void emitError(IEmitable<R> pEmitable, Throwable pThrowable)
-  {
-    if (pEmitable != null)
-      pEmitable.emitError(pThrowable);
   }
 
 }

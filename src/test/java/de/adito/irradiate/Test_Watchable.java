@@ -29,12 +29,14 @@ public class Test_Watchable
     watchX.value(str -> System.out.println("x: " + str))
         .error(Throwable::printStackTrace);
 
+    //noinspection unused
     IPortion<Integer> watchY = y.watch()
         .value(integer -> countY.incrementAndGet())
         .value(integer -> System.out.println("y: " + integer));
 
     x.setValue(720);
 
+    //noinspection UnusedAssignment
     watchY = null;
 
     System.gc();

@@ -80,7 +80,7 @@ class Portion<T> implements IPortion<T>
     SimplePortionEmitable<T> portionEmitable = new SimplePortionEmitable<T>(portionSupplier)
     {
       @Override
-      protected void emitValue(IEmitable<T> pEmitable, T pValue)
+      public void emitValue(IEmitable<T> pEmitable, T pValue)
       {
         if (pEmitable != null)
         {
@@ -100,10 +100,30 @@ class Portion<T> implements IPortion<T>
     PortionEmitable<T, R> portionEmitable = new PortionEmitable<T, R>(portionSupplier)
     {
       @Override
-      protected void emitValue(IEmitable<R> pEmitable, T pValue)
+      public void emitValue(IEmitable<R> pEmitable, T pValue)
       {
         if (pEmitable != null)
           pEmitable.emitValue(pFunction.apply(pValue));
+      }
+    };
+    return portionSupplier.addPortion(portionEmitable);
+  }
+
+  @Override
+  public <R> IPortion<R> transform(IPortionTransformer<T, R> pPortionTransformer)
+  {
+    PortionEmitable<T, R> portionEmitable = new PortionEmitable<T, R>(portionSupplier)
+    {
+      @Override
+      public void emitValue(IEmitable<R> pEmitable, T pValue)
+      {
+        pPortionTransformer.emitValue(pEmitable, pValue);
+      }
+
+      @Override
+      public void emitError(IEmitable<R> pEmitable, Throwable pThrowable)
+      {
+        pPortionTransformer.emitError(pEmitable, pThrowable);
       }
     };
     return portionSupplier.addPortion(portionEmitable);
