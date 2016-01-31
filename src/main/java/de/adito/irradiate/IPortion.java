@@ -22,4 +22,6 @@ public interface IPortion<T>
 
   <R> IPortion<R> transform(IPortionTransformer<T, R> pPortionTransformer);
 
+  void disintegrate();
+
 }

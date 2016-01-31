@@ -29,7 +29,7 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
   {
     IEmitable<R> emitable = emissionTarget.get();
     if (emitable != null)
-      emitError(emissionTarget.get(), pThrowable);
+      emitError(emitable, pThrowable);
   }
 
   @Override
@@ -63,6 +63,12 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
           }
         });
     return new Portion<>(pPortionEmitable);
+  }
+
+  @Override
+  public void disintegrate()
+  {
+    emissionTarget.set(null);
   }
 
   @Override

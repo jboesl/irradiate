@@ -27,12 +27,12 @@ public class Test_Watchable
         .map(integer -> integer == null ? null : Integer.toHexString(integer * 63).toUpperCase());
     watchX.value(str -> countX.incrementAndGet());
     watchX.value(str -> System.out.println("x: " + str))
-        .error(Throwable::printStackTrace);
+        .error(throwable -> System.out.println(throwable.getClass().getSimpleName() + ": " + throwable.getMessage()));
 
     //noinspection unused
     IPortion<Integer> watchY = y.watch()
-        .value(integer -> countY.incrementAndGet())
-        .value(integer -> System.out.println("y: " + integer));
+        .value(integer -> System.out.println("y: " + integer))
+        .value(integer -> countY.incrementAndGet());
 
     x.setValue(720);
 
@@ -42,6 +42,10 @@ public class Test_Watchable
     System.gc();
 
     y.setValue(960);
+
+    watchX.disintegrate();
+
+    x.setValue(64);
 
     Assert.assertEquals(1, countX.get());
     Assert.assertEquals(1, countY.get());
