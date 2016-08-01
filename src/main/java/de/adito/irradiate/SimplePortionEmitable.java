@@ -7,7 +7,7 @@ import java.util.function.Consumer;
  */
 class SimplePortionEmitable<T> extends PortionEmitable<T, T>
 {
-  public SimplePortionEmitable(Consumer<IEmitable<T>> pEmissionSource)
+  SimplePortionEmitable(Consumer<IEmitable<T>> pEmissionSource)
   {
     super(pEmissionSource);
   }

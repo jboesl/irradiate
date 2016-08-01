@@ -11,7 +11,7 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
   private Consumer<IEmitable<T>> emissionSource;
   private AtomicReference<IEmitable<R>> emissionTarget = new AtomicReference<>();
 
-  public PortionEmitable(Consumer<IEmitable<T>> pEmissionSource)
+  PortionEmitable(Consumer<IEmitable<T>> pEmissionSource)
   {
     emissionSource = pEmissionSource;
   }
@@ -35,34 +35,11 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
   @Override
   public <S> IPortion<S> addPortion(PortionEmitable<R, S> pPortionEmitable)
   {
-    emissionTarget.updateAndGet(emitable ->
-        emitable == null ? pPortionEmitable : new PortionEmitable<R, S>(PortionEmitable.this)
-        {
-          @Override
-          public void emitValue(R pValue)
-          {
-            emitable.emitValue(pValue);
-            pPortionEmitable.emitValue(pValue);
-          }
-
-          @Override
-          public void emitError(Throwable pThrowable)
-          {
-            emitable.emitError(pThrowable);
-            pPortionEmitable.emitError(pThrowable);
-          }
-
-          @Override
-          public void emitValue(IEmitable<S> pEmitable, R pValue)
-          {
-          }
-
-          @Override
-          public void emitError(IEmitable<S> pEmitable, Throwable pThrowable)
-          {
-          }
-        });
-    return new Portion<>(pPortionEmitable);
+    //noinspection unchecked
+    return new Portion<>((IPortionSupplier<S>) emissionTarget.updateAndGet(
+        emitable -> emitable == null ? pPortionEmitable :
+            new _CombinedProtionEmitable<R, S>(PortionEmitable.this, emitable, pPortionEmitable)
+    ));
   }
 
   @Override
@@ -88,6 +65,41 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
         PortionEmitable.this.emitError(pEmitable, pThrowable);
       }
     });
+  }
+
+  /**
+   * PortionEmitable implementation
+   */
+  private static class _CombinedProtionEmitable<R, S> extends PortionEmitable<R, S>
+  {
+    private IEmitable<R>[] emitables;
+
+    @SuppressWarnings("unchecked")
+    _CombinedProtionEmitable(Consumer<IEmitable<R>> pEmissionSource, IEmitable<R>... pEmitables)
+    {
+      super(pEmissionSource);
+      emitables = pEmitables;
+    }
+
+    @Override
+    public void emitValue(R pValue)
+    {
+      for (IEmitable<R> emitable : emitables)
+        emitable.emitValue(pValue);
+    }
+
+    @Override
+    public void emitError(Throwable pThrowable)
+    {
+      for (IEmitable<R> emitable : emitables)
+        emitable.emitError(pThrowable);
+    }
+
+    @Override
+    public void emitValue(IEmitable<S> pEmitable, R pValue)
+    {
+      assert false : "This method should have never been called!";
+    }
   }
 
 }

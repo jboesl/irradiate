@@ -3,9 +3,7 @@ package de.adito.irradiate;
 import de.adito.irradiate.common.FilteredValueException;
 
 import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.*;
 
 /**
  * IPortion-Impl
@@ -16,7 +14,7 @@ class Portion<T> implements IPortion<T>
   private IPortionSupplier<T> portionSupplier;
 
 
-  public Portion(IPortionSupplier<T> pPortionSupplier)
+  Portion(IPortionSupplier<T> pPortionSupplier)
   {
     portionSupplier = pPortionSupplier;
   }
@@ -30,6 +28,7 @@ class Portion<T> implements IPortion<T>
       @Override
       public void emitValue(T pValue)
       {
+        super.emitValue(pValue);
         pOnValue.accept(pValue);
       }
     };
@@ -53,6 +52,7 @@ class Portion<T> implements IPortion<T>
       @Override
       public void emitError(Throwable pThrowable)
       {
+        super.emitError(pThrowable);
         pOnThrowable.accept(pThrowable);
       }
     };
@@ -71,7 +71,7 @@ class Portion<T> implements IPortion<T>
   public IPortion<T> filter(Predicate<? super T> pPredicate)
   {
     Objects.nonNull(portionSupplier);
-    SimplePortionEmitable<T> portionEmitable = new SimplePortionEmitable<T>(portionSupplier)
+    PortionEmitable<T, T> portionEmitable = new PortionEmitable<T, T>(portionSupplier)
     {
       @Override
       public void emitValue(IEmitable<T> pEmitable, T pValue)

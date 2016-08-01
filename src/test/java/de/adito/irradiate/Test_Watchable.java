@@ -1,9 +1,6 @@
 package de.adito.irradiate;
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.*;
 
 /**
  * @author bo
@@ -16,25 +13,27 @@ public class Test_Watchable
   @Test
   public void simpleTest()
   {
-    AtomicInteger countX = new AtomicInteger();
-    AtomicInteger countY = new AtomicInteger();
+    StringBuilder bufX = new StringBuilder();
+    StringBuilder bufY = new StringBuilder();
 
     SimpleWatchable<Integer> x = new SimpleWatchable<>(320);
     SimpleWatchable<Integer> y = new SimpleWatchable<>(480);
 
     IPortion<String> watchX = x.watch()
         .filter(integer -> integer > 500)
-        .map(integer -> integer == null ? null : Integer.toHexString(integer * 63).toUpperCase());
-    watchX.value(str -> countX.incrementAndGet());
-    watchX.value(str -> System.out.println("x: " + str))
-        .error(throwable -> System.out.println(throwable.getClass().getSimpleName() + ": " + throwable.getMessage()));
+        .map(integer -> integer == null ? null : Integer.toHexString(integer * 63).toUpperCase())
+        .value(bufX::append)
+        .value(str -> System.out.println("x: " + str))
+        .error(throwable -> System.out.println(throwable.getClass().getSimpleName() + " @watchX: " + throwable.getMessage()));
 
     //noinspection unused
     IPortion<Integer> watchY = y.watch()
+        .value(bufY::append)
         .value(integer -> System.out.println("y: " + integer))
-        .value(integer -> countY.incrementAndGet());
+        .error(throwable -> System.out.println(throwable.getClass().getSimpleName() + " @watchY: " + throwable.getMessage()));
 
     x.setValue(720);
+    y.setValue(480);
 
     //noinspection UnusedAssignment
     watchY = null;
@@ -43,12 +42,13 @@ public class Test_Watchable
 
     y.setValue(960);
 
-    watchX.disintegrate();
-
     x.setValue(64);
+    watchX.disintegrate();
+    x.setValue(664);
 
-    Assert.assertEquals(1, countX.get());
-    Assert.assertEquals(1, countY.get());
+
+    Assert.assertEquals("B130A368", bufX.toString());
+    Assert.assertEquals("480480", bufY.toString());
   }
 
 }
