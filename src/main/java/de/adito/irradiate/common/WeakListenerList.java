@@ -1,7 +1,7 @@
 package de.adito.irradiate.common;
 
 import javax.annotation.Nonnull;
-import java.lang.ref.WeakReference;
+import java.lang.ref.*;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -12,52 +12,83 @@ public class WeakListenerList<T>
 {
 
   private final List<WeakReference<T>> list;
-
+  private final Consumer<Reference<T>> onCollectConsumer;
 
   public WeakListenerList()
   {
     list = Collections.synchronizedList(new ArrayList<>());
+    onCollectConsumer = pReference ->
+    {
+      boolean wasEmpty;
+      boolean isEmpty;
+      synchronized (list)
+      {
+        wasEmpty = list.isEmpty();
+        list.remove(pReference);
+        isEmpty = list.isEmpty();
+      }
+      if (!wasEmpty && isEmpty)
+        listenerAvailableChanged(false);
+    };
   }
 
   public void add(@Nonnull T pListener)
   {
     Objects.requireNonNull(pListener);
-    synchronized ((list))
+    boolean wasEmpty;
+    synchronized (list)
     {
-      list.add(new WeakReference<>(pListener));
+      wasEmpty = list.isEmpty();
+      list.add(WeakReferenceFactory.get().create(pListener, onCollectConsumer));
     }
+    if (wasEmpty)
+      listenerAvailableChanged(true);
   }
 
   public void remove(@Nonnull T pListener)
   {
     Objects.requireNonNull(pListener);
+    boolean wasEmpty;
+    boolean isEmpty;
     synchronized (list)
     {
+      wasEmpty = list.isEmpty();
       for (Iterator<WeakReference<T>> iterator = list.iterator(); iterator.hasNext(); )
       {
         T nextListener = iterator.next().get();
-        if (nextListener == null || nextListener.equals(pListener))
+        if (nextListener != null && nextListener.equals(pListener))
           iterator.remove();
       }
+      isEmpty = list.isEmpty();
     }
+    if (!wasEmpty && isEmpty)
+      listenerAvailableChanged(false);
   }
 
   public void forEach(@Nonnull Consumer<T> pListenerConsumer)
   {
     Objects.requireNonNull(pListenerConsumer);
-    List<T> listeners = new ArrayList<>(list.size());
+    getListeners().forEach(pListenerConsumer);
+  }
+
+  public List<T> getListeners()
+  {
+    List<T> listeners;
     synchronized (list)
     {
-      for (Iterator<WeakReference<T>> iterator = list.iterator(); iterator.hasNext(); )
+      listeners = new ArrayList<>(list.size());
+      for (WeakReference<T> entry : list)
       {
-        T nextListener = iterator.next().get();
-        if (nextListener == null)
-          iterator.remove();
-        else
+        T nextListener = entry.get();
+        if (nextListener != null)
           listeners.add(nextListener);
       }
     }
-    listeners.forEach(pListenerConsumer);
+    return listeners;
+  }
+
+  protected void listenerAvailableChanged(boolean pAvailable)
+  {
   }
 
 }

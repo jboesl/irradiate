@@ -2,6 +2,8 @@ package de.adito.irradiate;
 
 import org.junit.*;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * @author bo
  *         Date: 04.01.16
@@ -11,13 +13,18 @@ public class Test_Watchable
 {
 
   @Test
-  public void simpleTest()
+  public void simpleTest() throws InterruptedException
   {
     StringBuilder bufX = new StringBuilder();
     StringBuilder bufY = new StringBuilder();
+    AtomicBoolean xGotCold = new AtomicBoolean();
 
-    SimpleWatchable<Integer> x = new SimpleWatchable<>(320);
-    SimpleWatchable<Integer> y = new SimpleWatchable<>(480);
+    SimpleWatchable<Integer> x = new SimpleWatchable<>(320, () -> bufX.append("xGotHot"), () ->
+    {
+      xGotCold.set(true);
+      bufX.append("xGotCold");
+    });
+    SimpleWatchable<Integer> y = new SimpleWatchable<>(480, () -> bufY.append("yGotHot"), () -> bufY.append("yGotCold"));
 
     IPortion<String> watchX = x.watch()
         .filter(integer -> integer > 500)
@@ -37,18 +44,21 @@ public class Test_Watchable
 
     //noinspection UnusedAssignment
     watchY = null;
-
     System.gc();
-
     y.setValue(960);
 
     x.setValue(64);
     watchX.disintegrate();
     x.setValue(664);
+    System.gc();
 
 
-    Assert.assertEquals("B130A368", bufX.toString());
-    Assert.assertEquals("480480", bufY.toString());
+    for (int i = 0; i < 250 && !xGotCold.get(); i++)
+      Thread.sleep(10);
+
+
+    Assert.assertEquals("xGotHotB130xGotCold", bufX.toString());
+    Assert.assertEquals("yGotHot480480yGotCold", bufY.toString());
   }
 
 }

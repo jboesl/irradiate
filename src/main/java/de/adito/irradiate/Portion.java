@@ -40,7 +40,8 @@ class Portion<T> implements IPortion<T>
         pOnValue.accept(pValue);
       }
     });
-    return portionSupplier.addPortion(portionEmitable);
+    portionSupplier.addPortion(portionEmitable);
+    return this;
   }
 
   @Override
@@ -64,7 +65,8 @@ class Portion<T> implements IPortion<T>
         pOnThrowable.accept(pThrowable);
       }
     });
-    return portionSupplier.addPortion(portionEmitable);
+    portionSupplier.addPortion(portionEmitable);
+    return this;
   }
 
   @Override

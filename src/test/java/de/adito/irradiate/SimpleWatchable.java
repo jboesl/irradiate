@@ -5,26 +5,37 @@ package de.adito.irradiate;
  *         Date: 04.01.16
  *         Time: 18:16
  */
-public class SimpleWatchable<T> extends Watchable<T>
+
+class SimpleWatchable<T> extends Watchable<T>
 {
 
   private T value;
+  private Runnable onHot;
+  private Runnable onCold;
 
   public SimpleWatchable()
   {
+    this(null);
   }
 
-  public SimpleWatchable(T pValue)
+  SimpleWatchable(T pValue)
+  {
+    this(pValue, null, null);
+  }
+
+  SimpleWatchable(T pValue, Runnable pOnHot, Runnable pOnCold)
   {
     value = pValue;
+    onHot = pOnHot;
+    onCold = pOnCold;
   }
 
-  public T getValue()
+  private T getValue()
   {
     return value;
   }
 
-  public void setValue(T pValue)
+  void setValue(T pValue)
   {
     value = pValue;
     emitValue(pValue);
@@ -34,5 +45,19 @@ public class SimpleWatchable<T> extends Watchable<T>
   protected T getCurrentValue()
   {
     return getValue();
+  }
+
+  @Override
+  protected void onHot()
+  {
+    if (onHot != null)
+      onHot.run();
+  }
+
+  @Override
+  protected void onCold()
+  {
+    if (onCold != null)
+      onCold.run();
   }
 }

@@ -9,7 +9,35 @@ import java.util.function.Supplier;
  */
 public abstract class Watchable<T> implements IWatchable<T>, IEmitable<T>
 {
-  private WeakListenerList<IEmitable<T>> emitters = new WeakListenerList<>();
+  private WeakListenerList<IEmitable<T>> emitters;
+
+  public Watchable()
+  {
+    emitters = new WeakListenerList<IEmitable<T>>()
+    {
+      @Override
+      protected void listenerAvailableChanged(boolean pAvailable)
+      {
+        if (pAvailable)
+          onHot();
+        else
+          onCold();
+      }
+    };
+  }
+
+  public static <T> IWatchable<T> create(Supplier<T> pValueSupplier)
+  {
+    return new Watchable<T>()
+    {
+      @Override
+      protected T getCurrentValue()
+      {
+        return pValueSupplier.get();
+      }
+    };
+  }
+
 
   public void emitValue(T pValue)
   {
@@ -29,19 +57,14 @@ public abstract class Watchable<T> implements IWatchable<T>, IEmitable<T>
     return new Portion<>(portionEmitable);
   }
 
-  protected abstract T getCurrentValue();
-
-
-  public static <T> IWatchable<T> create(Supplier<T> pValueSupplier)
+  protected void onHot()
   {
-    return new Watchable<T>()
-    {
-      @Override
-      protected T getCurrentValue()
-      {
-        return pValueSupplier.get();
-      }
-    };
   }
+
+  protected void onCold()
+  {
+  }
+
+  protected abstract T getCurrentValue();
 
 }
