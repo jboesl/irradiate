@@ -23,7 +23,7 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
     IEmitable<R>[] emitables = emissionTargets.get();
     if (emitables != null)
       for (IEmitable<R> emitable : emitables)
-        emitValue(emitable, pValue);
+        emitValue(emitable, pValue, false);
   }
 
   @Override
@@ -32,7 +32,7 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
     IEmitable<R>[] emitables = emissionTargets.get();
     if (emitables != null)
       for (IEmitable<R> emitable : emitables)
-        emitError(emitable, pThrowable);
+        emitError(emitable, pThrowable, false);
   }
 
   @Override
@@ -63,13 +63,13 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
       @Override
       public void emitValue(T pValue)
       {
-        PortionEmitable.this.emitValue(pEmitable, pValue);
+        PortionEmitable.this.emitValue(pEmitable, pValue, true);
       }
 
       @Override
       public void emitError(Throwable pThrowable)
       {
-        PortionEmitable.this.emitError(pEmitable, pThrowable);
+        PortionEmitable.this.emitError(pEmitable, pThrowable, true);
       }
     });
   }

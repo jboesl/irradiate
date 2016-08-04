@@ -1,10 +1,8 @@
 package de.adito.irradiate.extra;
 
-import de.adito.irradiate.IEmitable;
-import de.adito.irradiate.IPortionTransformer;
+import de.adito.irradiate.*;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.Executor;
 
 /**
@@ -38,7 +36,7 @@ public class DeferringTransformer<T> implements IPortionTransformer<T, T>
   }
 
   @Override
-  public void emitValue(IEmitable<T> pEmitable, T pValue)
+  public void emitValue(IEmitable<T> pEmitable, T pValue, boolean pIsInitialPull)
   {
     _addTask(new TimerTask()
     {
@@ -50,8 +48,9 @@ public class DeferringTransformer<T> implements IPortionTransformer<T, T>
     });
   }
 
+
   @Override
-  public void emitError(IEmitable<T> pEmitable, Throwable pThrowable)
+  public void emitError(IEmitable<T> pEmitable, Throwable pThrowable, boolean pIsInitialPull)
   {
     _addTask(new TimerTask()
     {

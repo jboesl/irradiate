@@ -1,7 +1,6 @@
 package de.adito.irradiate.extra;
 
-import de.adito.irradiate.IEmitable;
-import de.adito.irradiate.IPortionTransformer;
+import de.adito.irradiate.*;
 
 import java.util.concurrent.Executor;
 
@@ -21,13 +20,14 @@ public class ExecutionTransformer<T> implements IPortionTransformer<T, T>
   }
 
   @Override
-  public void emitValue(IEmitable<T> pEmitable, T pValue)
+  public void emitValue(IEmitable<T> pEmitable, T pValue, boolean pIsInitialPull)
   {
     executor.execute(() -> pEmitable.emitValue(pValue));
   }
 
+
   @Override
-  public void emitError(IEmitable<T> pEmitable, Throwable pThrowable)
+  public void emitError(IEmitable<T> pEmitable, Throwable pThrowable, boolean pIsInitialPull)
   {
     executor.execute(() -> pEmitable.emitError(pThrowable));
   }

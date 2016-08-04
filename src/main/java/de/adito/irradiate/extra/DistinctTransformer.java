@@ -1,7 +1,6 @@
 package de.adito.irradiate.extra;
 
-import de.adito.irradiate.IEmitable;
-import de.adito.irradiate.IPortionTransformer;
+import de.adito.irradiate.*;
 
 import java.util.Objects;
 
@@ -14,10 +13,11 @@ public class DistinctTransformer<T> implements IPortionTransformer<T, T>
 {
   private T lastValue = null;
 
+
   @Override
-  public void emitValue(IEmitable<T> pEmitable, T pValue)
+  public void emitValue(IEmitable<T> pEmitable, T pValue, boolean pIsInitialPull)
   {
-    if (!Objects.equals(lastValue, pValue))
+    if (pIsInitialPull || !Objects.equals(lastValue, pValue))
     {
       lastValue = pValue;
       pEmitable.emitValue(pValue);

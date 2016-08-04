@@ -8,9 +8,9 @@ package de.adito.irradiate;
 public interface IPortionTransformer<T, R>
 {
 
-  void emitValue(IEmitable<R> pEmitable, T pValue);
+  void emitValue(IEmitable<R> pEmitable, T pValue, boolean pIsInitialPull);
 
-  default void emitError(IEmitable<R> pEmitable, Throwable pThrowable)
+  default void emitError(IEmitable<R> pEmitable, Throwable pThrowable, boolean pIsInitialPull)
   {
     if (pEmitable != null)
       pEmitable.emitError(pThrowable);
