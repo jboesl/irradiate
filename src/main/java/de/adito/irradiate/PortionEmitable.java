@@ -1,5 +1,6 @@
 package de.adito.irradiate;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -9,7 +10,7 @@ import java.util.function.Consumer;
 abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R>, IPortionTransformer<T, R>
 {
   private Consumer<IEmitable<T>> emissionSource;
-  private AtomicReference<IEmitable<R>> emissionTarget = new AtomicReference<>();
+  private AtomicReference<IEmitable<R>[]> emissionTargets = new AtomicReference<>();
 
   PortionEmitable(Consumer<IEmitable<T>> pEmissionSource)
   {
@@ -19,33 +20,39 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
   @Override
   public void emitValue(T pValue)
   {
-    IEmitable<R> emitable = emissionTarget.get();
-    if (emitable != null)
-      emitValue(emitable, pValue);
+    IEmitable<R>[] emitables = emissionTargets.get();
+    if (emitables != null)
+      for (IEmitable<R> emitable : emitables)
+        emitValue(emitable, pValue);
   }
 
   @Override
   public void emitError(Throwable pThrowable)
   {
-    IEmitable<R> emitable = emissionTarget.get();
-    if (emitable != null)
-      emitError(emitable, pThrowable);
+    IEmitable<R>[] emitables = emissionTargets.get();
+    if (emitables != null)
+      for (IEmitable<R> emitable : emitables)
+        emitError(emitable, pThrowable);
   }
 
   @Override
   public <S> IPortion<S> addPortion(PortionEmitable<R, S> pPortionEmitable)
   {
-    //noinspection unchecked
-    return new Portion<>((IPortionSupplier<S>) emissionTarget.updateAndGet(
-        emitable -> emitable == null ? pPortionEmitable :
-            new _CombinedProtionEmitable<R, S>(PortionEmitable.this, emitable, pPortionEmitable)
-    ));
+    emissionTargets.updateAndGet(
+        emitables ->
+        {
+          IEmitable<R>[] e = emitables == null ? new IEmitable[1] : Arrays.copyOf(emitables, emitables.length + 1);
+          e[e.length - 1] = pPortionEmitable;
+          return e;
+        }
+    );
+    return new Portion<>(pPortionEmitable);
   }
 
   @Override
   public void disintegrate()
   {
-    emissionTarget.set(null);
+    emissionTargets.set(null);
   }
 
   @Override
@@ -65,41 +72,6 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
         PortionEmitable.this.emitError(pEmitable, pThrowable);
       }
     });
-  }
-
-  /**
-   * PortionEmitable implementation
-   */
-  private static class _CombinedProtionEmitable<R, S> extends PortionEmitable<R, S>
-  {
-    private IEmitable<R>[] emitables;
-
-    @SuppressWarnings("unchecked")
-    _CombinedProtionEmitable(Consumer<IEmitable<R>> pEmissionSource, IEmitable<R>... pEmitables)
-    {
-      super(pEmissionSource);
-      emitables = pEmitables;
-    }
-
-    @Override
-    public void emitValue(R pValue)
-    {
-      for (IEmitable<R> emitable : emitables)
-        emitable.emitValue(pValue);
-    }
-
-    @Override
-    public void emitError(Throwable pThrowable)
-    {
-      for (IEmitable<R> emitable : emitables)
-        emitable.emitError(pThrowable);
-    }
-
-    @Override
-    public void emitValue(IEmitable<S> pEmitable, R pValue)
-    {
-      assert false : "This method should have never been called!";
-    }
   }
 
 }
