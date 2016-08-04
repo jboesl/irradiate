@@ -72,11 +72,17 @@ public class Test_Watchable
 
     SimpleWatchable<Integer> x = new SimpleWatchable<>(320);
     IPortion<String> watchX = x.watch()
+        .value(v -> {})
         .transform(new DistinctTransformer<>())
+        .value(v -> {})
         .transform(new ExecutionTransformer<>(SwingUtilities::invokeLater))
+        .value(v -> {})
         .filter(integer -> integer > 500)
+        .value(v -> {})
         .map(integer -> integer == null ? null : Integer.toHexString(integer * 63).toUpperCase())
-        .value(v -> bufX.append(SwingUtilities.isEventDispatchThread()).append(v));
+        .value(v -> {})
+        .value(v -> bufX.append(SwingUtilities.isEventDispatchThread()).append(v))
+        .value(v -> {});
 
     x.setValue(1080);
     x.setValue(1080);

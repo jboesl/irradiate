@@ -20,19 +20,13 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
   @Override
   public void emitValue(T pValue)
   {
-    IEmitable<R>[] emitables = emissionTargets.get();
-    if (emitables != null)
-      for (IEmitable<R> emitable : emitables)
-        emitValue(emitable, pValue, false);
+    emitValue(new _ProxyEmitable(), pValue, false);
   }
 
   @Override
   public void emitError(Throwable pThrowable)
   {
-    IEmitable<R>[] emitables = emissionTargets.get();
-    if (emitables != null)
-      for (IEmitable<R> emitable : emitables)
-        emitError(emitable, pThrowable, false);
+    emitError(new _ProxyEmitable(), pThrowable, false);
   }
 
   @Override
@@ -72,6 +66,31 @@ abstract class PortionEmitable<T, R> implements IEmitable<T>, IPortionSupplier<R
         PortionEmitable.this.emitError(pEmitable, pThrowable, true);
       }
     });
+  }
+
+
+  /**
+   * IEmitable implementation for multiple targets.
+   */
+  private class _ProxyEmitable implements IEmitable<R>
+  {
+    @Override
+    public void emitValue(R pValue)
+    {
+      IEmitable<R>[] emitables = emissionTargets.get();
+      if (emitables != null)
+        for (IEmitable<R> emitable : emitables)
+          emitable.emitValue(pValue);
+    }
+
+    @Override
+    public void emitError(Throwable pThrowable)
+    {
+      IEmitable<R>[] emitables = emissionTargets.get();
+      if (emitables != null)
+        for (IEmitable<R> emitable : emitables)
+          emitable.emitError(pThrowable);
+    }
   }
 
 }
