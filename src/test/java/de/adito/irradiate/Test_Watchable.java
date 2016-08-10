@@ -1,13 +1,10 @@
 package de.adito.irradiate;
 
-import de.adito.irradiate.extra.DistinctTransformer;
-import de.adito.irradiate.extra.ExecutionTransformer;
-import org.junit.Assert;
-import org.junit.Test;
+import de.adito.irradiate.extra.*;
+import org.junit.*;
 
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -90,7 +87,44 @@ public class Test_Watchable
     x.setValue(3200);
     x.setValue(3200);
 
-    SwingUtilities.invokeAndWait(() -> Assert.assertEquals("true109C8true31380", bufX.toString()));
+    SwingUtilities.invokeAndWait(() -> {});
+
+    Assert.assertEquals("true109C8true31380", bufX.toString());
+  }
+
+  @Test
+  public void sequenceTest() throws InvocationTargetException, InterruptedException
+  {
+    StringBuffer buf = new StringBuffer();
+
+    SimpleWatchable<Integer> x = new SimpleWatchable<>(0);
+
+    IPortion<String> watchX = x.watch()
+        .sequence(v -> {
+          SimpleWatchable<String> watchable = new SimpleWatchable<>("" + v);
+          SwingUtilities.invokeLater(() -> {
+            try {
+              Thread.sleep(10);
+              watchable.setValue("+" + watchable.getCurrentValue());
+            }
+            catch (InterruptedException pE) {
+              pE.printStackTrace();
+            }
+          });
+          return watchable;
+        })
+        .value(buf::append);
+
+    x.setValue(1);
+    x.setValue(2);
+    x.setValue(3);
+    x.setValue(4);
+    x.setValue(5);
+
+    for (int i = 0; i < 10; i++)
+      SwingUtilities.invokeAndWait(() -> {});
+
+    Assert.assertEquals("012345+5", buf.toString());
   }
 
 }

@@ -31,7 +31,7 @@ class Portion<T> implements IPortion<T>
         pOnValue.accept(pValue);
       }
     });
-    portionSupplier.addPortion(new _PortionEmitableValue(pOnValue));
+    portionSupplier.addPortionEmitable(new _PortionEmitableValue(pOnValue));
     return this;
   }
 
@@ -47,7 +47,7 @@ class Portion<T> implements IPortion<T>
         pOnThrowable.accept(pThrowable);
       }
     });
-    portionSupplier.addPortion(new _PortionEmitableError(pOnThrowable));
+    portionSupplier.addPortionEmitable(new _PortionEmitableError(pOnThrowable));
     return this;
   }
 
@@ -55,22 +55,31 @@ class Portion<T> implements IPortion<T>
   public IPortion<T> filter(Predicate<? super T> pPredicate)
   {
     Objects.nonNull(portionSupplier);
-    return portionSupplier.addPortion(new _PortionEmitableFilter(pPredicate));
+    return new Portion<>(portionSupplier.addPortionEmitable(new _PortionEmitableFilter(pPredicate)));
   }
 
   @Override
   public <R> IPortion<R> map(Function<? super T, ? extends R> pFunction)
   {
     Objects.nonNull(portionSupplier);
-    return portionSupplier.addPortion(new _PortionEmitableMap<>(pFunction));
+    return new Portion<>(portionSupplier.addPortionEmitable(new _PortionEmitableMap<>(pFunction)));
   }
 
   @Override
   public <R> IPortion<R> transform(IPortionTransformer<T, R> pPortionTransformer)
   {
     Objects.nonNull(portionSupplier);
-    return portionSupplier.addPortion(new _PortionEmitableTransform<>(pPortionTransformer));
+    return new Portion<>(portionSupplier.addPortionEmitable(new _PortionEmitableTransform<>(pPortionTransformer)));
   }
+
+  public <R> IPortion<R> sequence(Function<T, IWatchable<R>> pFunction)
+  {
+    Objects.nonNull(portionSupplier);
+    _PortionEmitableSequence<R> portionEmitable = new _PortionEmitableSequence<>(pFunction);
+    portionSupplier.addPortionEmitable(portionEmitable);
+    return portionEmitable.getPortion();
+  }
+
 
   @Override
   public void disintegrate()
@@ -136,8 +145,7 @@ class Portion<T> implements IPortion<T>
     @Override
     public void emitValue(IEmitable<T> pEmitable, T pValue, boolean pIsInitialPull)
     {
-      if (pEmitable != null)
-      {
+      if (pEmitable != null) {
         if (predicate.test(pValue))
           pEmitable.emitValue(pValue);
         else
@@ -193,4 +201,100 @@ class Portion<T> implements IPortion<T>
     }
   }
 
+  /**
+   * PortionEmitable implementation for sequences.
+   */
+  private class _PortionEmitableSequence<R> extends AbstractPortionEmitable<T, R>
+  {
+    private final Function<T, IWatchable<R>> function;
+    private IWatchable<R> watchable;
+    private IPortionSupplier<R> ps;
+    private _PE portionEmitable;
+
+    _PortionEmitableSequence(Function<T, IWatchable<R>> pFunction)
+    {
+      function = pFunction;
+      portionEmitable = new _PE();
+    }
+
+    @Override
+    public void emitValue(T pValue)
+    {
+      _updateWatchable(pValue);
+    }
+
+    @Override
+    public void emitError(Throwable pThrowable)
+    {
+      portionEmitable.emitError(pThrowable);
+    }
+
+    @Override
+    public void accept(IEmitable<R> pEmitable)
+    {
+      portionSupplier.accept(new IEmitable<T>()
+      {
+        @Override
+        public void emitValue(T pValue)
+        {
+          _updateWatchable(pValue);
+          if (ps == null)
+            pEmitable.emitError(new RuntimeException("no watchable"));
+          else
+            ps.accept(pEmitable);
+        }
+
+        @Override
+        public void emitError(Throwable pThrowable)
+        {
+          pEmitable.emitError(pThrowable);
+        }
+      });
+    }
+
+    private void _updateWatchable(T pValue)
+    {
+      IWatchable<R> w = function.apply(pValue);
+      if (!Objects.equals(watchable, w)) {
+        watchable = w;
+        IPortionSupplier<R> portionSupplier = ((Portion<R>) watchable.watch()).portionSupplier;
+        if (!Objects.equals(ps, portionSupplier)) {
+          if (ps != null)
+            ps.disintegrate();
+          ps = portionSupplier;
+          ps.addPortionEmitable(portionEmitable);
+          ps.accept(portionEmitable);
+        }
+      }
+    }
+
+    IPortion<R> getPortion()
+    {
+      return new Portion<>(portionEmitable);
+    }
+
+    /**
+     * Outer emitable
+     */
+    private class _PE extends AbstractPortionEmitable<R, R>
+    {
+      @Override
+      public void emitValue(R pValue)
+      {
+        new TargetingEmitable().emitValue(pValue);
+      }
+
+      @Override
+      public void emitError(Throwable pThrowable)
+      {
+        new TargetingEmitable().emitError(pThrowable);
+      }
+
+      @Override
+      public void accept(IEmitable<R> pEmitable)
+      {
+        _PortionEmitableSequence.this.accept(pEmitable);
+      }
+    }
+  }
 }

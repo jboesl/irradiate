@@ -1,8 +1,6 @@
 package de.adito.irradiate;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.*;
 
 /**
  * @author bo
@@ -21,6 +19,8 @@ public interface IPortion<T>
   <R> IPortion<R> map(Function<? super T, ? extends R> pFunction);
 
   <R> IPortion<R> transform(IPortionTransformer<T, R> pPortionTransformer);
+
+  <R> IPortion<R> sequence(Function<T, IWatchable<R>> pFunction);
 
   void disintegrate();
 
