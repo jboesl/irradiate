@@ -13,7 +13,7 @@ public abstract class AbstractPortionEmitable<T, R> implements IEmitable<T>, IPo
 
 
   @Override
-  public <S> IPortionSupplier<S> addPortionEmitable(AbstractPortionEmitable<R, S> pPortionEmitable)
+  public <S> IPortionSupplier<S> addEmitable(IEmitable<R> pPortionEmitable)
   {
     emissionTargets.updateAndGet(
         emitables ->
@@ -23,7 +23,7 @@ public abstract class AbstractPortionEmitable<T, R> implements IEmitable<T>, IPo
           return e;
         }
     );
-    return pPortionEmitable;
+    return pPortionEmitable instanceof IPortionSupplier ? (IPortionSupplier<S>) pPortionEmitable : null;
   }
 
   @Override

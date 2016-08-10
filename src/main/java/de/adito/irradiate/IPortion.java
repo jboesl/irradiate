@@ -22,6 +22,8 @@ public interface IPortion<T>
 
   <R> IPortion<R> sequence(Function<T, IWatchable<R>> pFunction);
 
+  Supplier<T> toSupplier(IEmitable<T> pOnValueChange);
+
   void disintegrate();
 
 }

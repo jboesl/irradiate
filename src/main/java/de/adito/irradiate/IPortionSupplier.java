@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 public interface IPortionSupplier<T> extends Consumer<IEmitable<T>>
 {
 
-  <R> IPortionSupplier<R> addPortionEmitable(AbstractPortionEmitable<T, R> pPortionEmitable);
+  <R> IPortionSupplier<R> addEmitable(IEmitable<T> pPortionEmitable);
 
   void disintegrate();
 
