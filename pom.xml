@@ -9,6 +9,21 @@
   <version>1.0-SNAPSHOT</version>
 
 
+  <distributionManagement>
+    <repository>
+      <id>adito.m2</id>
+      <name>releases</name>
+      <url>${repository.releases}</url>
+    </repository>
+    <snapshotRepository>
+      <id>adito.m2</id>
+      <name>snapshots</name>
+      <url>${repository.snapshots}</url>
+      <uniqueVersion>false</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement>
+
+
   <dependencies>
 
     <dependency>
@@ -76,7 +91,8 @@
             <Bundle-Version>${project.version}</Bundle-Version>
             <Export-Package>
               de.adito.irradiate,
-              de.adito.irradiate.common
+              de.adito.irradiate.common,
+              de.adito.irradiate.extra
             </Export-Package>
           </instructions>
         </configuration>
@@ -113,6 +129,11 @@
     </plugins>
 
   </build>
+
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
 
 
 </project>
