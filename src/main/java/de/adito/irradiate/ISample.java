@@ -3,14 +3,14 @@ package de.adito.irradiate;
 import java.util.function.Consumer;
 
 /**
- * @author bo
+ * @author j.boesl
  *         Date: 10.01.16
  *         Time: 21:29
  */
-public interface IPortionSupplier<T> extends Consumer<IEmitable<T>>
+public interface ISample<T> extends Consumer<IDetector<T>>
 {
 
-  <R> IPortionSupplier<R> addEmitable(IEmitable<T> pPortionEmitable);
+  <R> ISample<R> addDetector(IDetector<T> pDetector);
 
   void disintegrate();
 

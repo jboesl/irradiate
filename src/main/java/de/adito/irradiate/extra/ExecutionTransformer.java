@@ -1,15 +1,16 @@
 package de.adito.irradiate.extra;
 
-import de.adito.irradiate.*;
+import de.adito.irradiate.IDetector;
+import de.adito.irradiate.IParticleTransformer;
 
 import java.util.concurrent.Executor;
 
 /**
- * @author bo
+ * @author j.boesl
  *         Date: 31.01.16
  *         Time: 21:30
  */
-public class ExecutionTransformer<T> implements IPortionTransformer<T, T>
+public class ExecutionTransformer<T> implements IParticleTransformer<T, T>
 {
 
   private Executor executor;
@@ -20,16 +21,16 @@ public class ExecutionTransformer<T> implements IPortionTransformer<T, T>
   }
 
   @Override
-  public void emitValue(IEmitable<T> pEmitable, T pValue, boolean pIsInitialPull)
+  public void passHit(IDetector<T> pDetector, T pValue, boolean pIsInitial)
   {
-    executor.execute(() -> pEmitable.emitValue(pValue));
+    executor.execute(() -> pDetector.hit(pValue));
   }
 
 
   @Override
-  public void emitError(IEmitable<T> pEmitable, Throwable pThrowable, boolean pIsInitialPull)
+  public void passFailure(IDetector<T> pDetector, Throwable pThrowable, boolean pIsInitial)
   {
-    executor.execute(() -> pEmitable.emitError(pThrowable));
+    executor.execute(() -> pDetector.failure(pThrowable));
   }
 
 }

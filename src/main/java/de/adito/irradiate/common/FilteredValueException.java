@@ -3,7 +3,7 @@ package de.adito.irradiate.common;
 import java.lang.ref.WeakReference;
 
 /**
- * @author bo
+ * @author j.boesl
  *         Date: 31.01.16
  *         Time: 18:16
  */

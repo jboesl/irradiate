@@ -1,7 +1,8 @@
 package de.adito.irradiate.common;
 
 import javax.annotation.Nonnull;
-import java.lang.ref.*;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.function.Consumer;
 

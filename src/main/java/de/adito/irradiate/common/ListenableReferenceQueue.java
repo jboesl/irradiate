@@ -1,7 +1,10 @@
 package de.adito.irradiate.common;
 
-import java.lang.ref.*;
-import java.util.*;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
 /**
@@ -68,8 +71,7 @@ public class ListenableReferenceQueue extends ReferenceQueue
             if (consumer != null)
               consumer.accept(ref);
           }
-        }
-        catch (InterruptedException pE)
+        } catch (InterruptedException pE)
         {
           // lets kill it ...
           return;

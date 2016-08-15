@@ -1,26 +1,27 @@
 package de.adito.irradiate.extra;
 
-import de.adito.irradiate.*;
+import de.adito.irradiate.IDetector;
+import de.adito.irradiate.IParticleTransformer;
 
 import java.util.Objects;
 
 /**
- * @author bo
+ * @author j.boesl
  *         Date: 31.01.16
  *         Time: 19:04
  */
-public class DistinctTransformer<T> implements IPortionTransformer<T, T>
+public class DistinctTransformer<T> implements IParticleTransformer<T, T>
 {
   private T lastValue = null;
 
 
   @Override
-  public void emitValue(IEmitable<T> pEmitable, T pValue, boolean pIsInitialPull)
+  public void passHit(IDetector<T> pDetector, T pValue, boolean pIsInitial)
   {
-    if (pIsInitialPull || !Objects.equals(lastValue, pValue))
+    if (pIsInitial || !Objects.equals(lastValue, pValue))
     {
       lastValue = pValue;
-      pEmitable.emitValue(pValue);
+      pDetector.hit(pValue);
     }
   }
 }

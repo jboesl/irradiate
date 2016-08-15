@@ -8,11 +8,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * @author bo
+ * @author j.boesl
  *         Date: 04.01.16
  *         Time: 18:13
  */
-public class Test_Watchable
+public class Test_Emitter
 {
 
   @Test
@@ -22,21 +22,21 @@ public class Test_Watchable
     StringBuilder bufY = new StringBuilder();
     AtomicBoolean xGotCold = new AtomicBoolean();
 
-    SimpleWatchable<Integer> x = new SimpleWatchable<>(320, () -> bufX.append("xGotHot "), () ->
+    SimpleEmitter<Integer> x = new SimpleEmitter<>(320, () -> bufX.append("xGotHot "), () ->
     {
       xGotCold.set(true);
       bufX.append(" xGotCold");
     });
-    SimpleWatchable<Integer> y = new SimpleWatchable<>(480, () -> bufY.append("yGotHot "), () -> bufY.append(" yGotCold"));
+    SimpleEmitter<Integer> y = new SimpleEmitter<>(480, () -> bufY.append("yGotHot "), () -> bufY.append(" yGotCold"));
 
-    IPortion<String> watchX = x.watch()
+    IParticle<String> particleX = x.watch()
         .filter(integer -> integer > 500)
         .map(integer -> integer == null ? null : Integer.toHexString(integer * 63).toUpperCase());
-    watchX.error(pThrowable -> bufX.append(pThrowable.getClass().getSimpleName()));
-    watchX.value(bufX::append);
+    particleX.error(pThrowable -> bufX.append(pThrowable.getClass().getSimpleName()));
+    particleX.value(bufX::append);
 
     //noinspection unused
-    IPortion<Integer> watchY = y.watch()
+    IParticle<Integer> particleY = y.watch()
         .value(bufY::append)
         .error(pThrowable -> bufY.append(pThrowable.getClass().getSimpleName()));
 
@@ -44,12 +44,12 @@ public class Test_Watchable
     y.setValue(480);
 
     //noinspection UnusedAssignment
-    watchY = null;
+    particleY = null;
     System.gc();
     y.setValue(960);
 
     x.setValue(64);
-    watchX.disintegrate();
+    particleX.disintegrate();
     x.setValue(664);
     System.gc();
 
@@ -67,8 +67,8 @@ public class Test_Watchable
   {
     StringBuffer bufX = new StringBuffer();
 
-    SimpleWatchable<Integer> x = new SimpleWatchable<>(320);
-    IPortion<String> watchX = x.watch()
+    SimpleEmitter<Integer> x = new SimpleEmitter<>(320);
+    IParticle<String> particleX = x.watch()
         .value(v -> {})
         .transform(new DistinctTransformer<>())
         .value(v -> {})
@@ -97,21 +97,21 @@ public class Test_Watchable
   {
     StringBuffer buf = new StringBuffer();
 
-    SimpleWatchable<Integer> x = new SimpleWatchable<>(0);
+    SimpleEmitter<Integer> x = new SimpleEmitter<>(0);
 
-    IPortion<String> watchX = x.watch()
+    IParticle<String> emitX = x.watch()
         .sequence(v -> {
-          SimpleWatchable<String> watchable = new SimpleWatchable<>("" + v);
+          SimpleEmitter<String> emitter = new SimpleEmitter<>("" + v);
           SwingUtilities.invokeLater(() -> {
             try {
               Thread.sleep(10);
-              watchable.setValue("+" + watchable.getCurrentValue());
+              emitter.setValue("+" + emitter.getCurrentValue());
             }
             catch (InterruptedException pE) {
               pE.printStackTrace();
             }
           });
-          return watchable;
+          return emitter;
         })
         .value(buf::append);
 
