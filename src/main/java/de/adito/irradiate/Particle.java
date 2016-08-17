@@ -3,6 +3,7 @@ package de.adito.irradiate;
 import de.adito.irradiate.common.FilteredValueException;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -91,22 +92,23 @@ class Particle<T> implements IParticle<T>
     Objects.nonNull(sample);
     return new Supplier<T>()
     {
-      private IDetector<T> detector;
+      private AtomicReference<IDetector<T>> detectorRef = new AtomicReference<>();
       private T value;
 
       @Override
       public T get()
       {
-        if (detector == null)
+        boolean updated = detectorRef.compareAndSet(null, new AbstractDetector<T>()
         {
-          detector = new AbstractDetector<T>()
+          @Override
+          public void hit(T pValue)
           {
-            @Override
-            public void hit(T pValue)
-            {
-              value = pValue;
-            }
-          };
+            value = pValue;
+          }
+        });
+        if (updated)
+        {
+          IDetector<T> detector = detectorRef.get();
           sample.accept(detector);
           sample.addDetector(detector);
           if (pOnChange != null)
