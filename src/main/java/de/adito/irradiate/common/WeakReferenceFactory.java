@@ -1,10 +1,8 @@
 package de.adito.irradiate.common;
 
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
+import java.lang.ref.*;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 /**
@@ -31,9 +29,27 @@ public class WeakReferenceFactory
   public <T> WeakReference<T> create(T pValue, Consumer<Reference<T>> pOnCollect)
   {
     Objects.nonNull(pOnCollect);
-    WeakReference<T> reference = new WeakReference<>(pValue, referenceQueue);
-    referenceQueue.registerWeakReference(reference, ref -> executorService.execute(() -> pOnCollect.accept(ref)));
-    return reference;
+    return new _WR<>(pValue, referenceQueue, ref -> executorService.execute(() -> pOnCollect.accept(ref)));
+  }
+
+  /**
+   * WeakReference implementation
+   */
+  private static class _WR<T> extends WeakReference<T> implements Runnable
+  {
+    private Consumer<Reference<T>> onCollect;
+
+    _WR(T referent, ReferenceQueue<? super T> q, Consumer<Reference<T>> pOnCollect)
+    {
+      super(referent, q);
+      onCollect = pOnCollect;
+    }
+
+    @Override
+    public void run()
+    {
+      onCollect.accept(this);
+    }
   }
 
 }

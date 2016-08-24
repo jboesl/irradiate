@@ -1,43 +1,30 @@
 package de.adito.irradiate.common;
 
-import java.lang.ref.Reference;
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.function.Consumer;
+import java.lang.ref.*;
 
 /**
  * @author j.boesl, 02.08.16
  */
-public class ListenableReferenceQueue extends ReferenceQueue
+public class ListenableReferenceQueue extends ReferenceQueue<Object>
 {
 
-  private Map<WeakReference, Consumer> map = new WeakHashMap<>();
   private _Thread thread;
 
 
-  protected synchronized void start()
+  public synchronized void start()
   {
-    if (thread == null)
-    {
+    if (thread == null) {
       thread = new _Thread();
       thread.start();
     }
   }
 
-  protected synchronized void stop()
+  public synchronized void stop()
   {
-    if (thread != null)
-    {
+    if (thread != null) {
       thread.halt();
       thread = null;
     }
-  }
-
-  public synchronized <T> void registerWeakReference(WeakReference<T> pWeakReference, Consumer<WeakReference<T>> pOnCollect)
-  {
-    map.put(pWeakReference, pOnCollect);
   }
 
 
@@ -57,25 +44,17 @@ public class ListenableReferenceQueue extends ReferenceQueue
     @Override
     public void run()
     {
-      while (running)
-        try
-        {
+      while (running) {
+        try {
           Reference ref = remove(10000);
-          if (ref != null)
-          {
-            Consumer consumer;
-            synchronized (ListenableReferenceQueue.this)
-            {
-              consumer = map.remove(ref);
-            }
-            if (consumer != null)
-              consumer.accept(ref);
-          }
-        } catch (InterruptedException pE)
-        {
+          if (ref != null && ref instanceof Runnable)
+            ((Runnable) ref).run();
+        }
+        catch (InterruptedException pE) {
           // lets kill it ...
           return;
         }
+      }
     }
 
     void halt()
