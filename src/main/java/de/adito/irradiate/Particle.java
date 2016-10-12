@@ -122,8 +122,10 @@ class Particle<T> implements IParticle<T>
   @Override
   public void disintegrate()
   {
-    sample.disintegrate();
-    sample = null;
+    if (sample != null) {
+      sample.disintegrate();
+      sample = null;
+    }
   }
 
 
