@@ -1,23 +1,22 @@
 package de.adito.irradiate;
 
-import de.adito.irradiate.common.WeakListenerList;
+import de.adito.util.weak.WeakReferences;
 
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 /**
  * @author j.boesl, 01.12.15
  */
 public abstract class Emitter<T> implements IEmitter<T>, IDetector<T>
 {
-  private WeakListenerList<IDetector<T>> emitters;
+  private WeakReferences<IDetector<T>> emitters;
 
   public Emitter()
   {
-    emitters = new WeakListenerList<IDetector<T>>()
+    emitters = new WeakReferences<IDetector<T>>()
     {
       @Override
-      protected void listenerAvailableChanged(boolean pAvailable)
+      protected void availabilityChanged(boolean pAvailable)
       {
         if (pAvailable)
           onHot();
