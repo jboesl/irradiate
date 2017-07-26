@@ -139,13 +139,13 @@ public class Test_Emitter
     Function<Integer, String> intToString =
         pInteger -> pInteger == null ? " " : String.valueOf((char) ((pInteger % 26) + (int) 'a' - 1));
     IParticle<String> combinedParticle = new CombiningEmitter<>(x.watch(), y.watch()).watch()
-        .map(entry -> {
+        .map(combined -> {
           String result = "(";
-          Supplier<Integer> supplier = entry.getKey();
+          Supplier<Integer> supplier = combined.getSupplier1();
           if (supplier != null)
             result += intToString.apply(supplier.get());
           result += "|";
-          supplier = entry.getValue();
+          supplier = combined.getSupplier2();
           if (supplier != null)
             result += intToString.apply(supplier.get());
           result += ") ";
