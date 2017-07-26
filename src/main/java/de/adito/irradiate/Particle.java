@@ -26,7 +26,7 @@ class Particle<T> implements IParticle<T>
   @Override
   public IParticle<T> value(Consumer<? super T> pOnValue)
   {
-    Objects.nonNull(sample);
+    Objects.requireNonNull(sample);
     AbstractDetector<T> detector = new AbstractDetector<T>()
     {
       @Override
@@ -43,7 +43,7 @@ class Particle<T> implements IParticle<T>
   @Override
   public IParticle<T> error(Consumer<Throwable> pOnThrowable)
   {
-    Objects.nonNull(sample);
+    Objects.requireNonNull(sample);
     AbstractDetector<T> detector = new AbstractDetector<T>()
     {
       @Override
@@ -60,27 +60,27 @@ class Particle<T> implements IParticle<T>
   @Override
   public IParticle<T> filter(Predicate<? super T> pPredicate)
   {
-    Objects.nonNull(sample);
+    Objects.requireNonNull(sample);
     return new Particle<>(sample.addDetector(new _DetectorSampleFilter(pPredicate)));
   }
 
   @Override
   public <R> IParticle<R> map(Function<? super T, ? extends R> pFunction)
   {
-    Objects.nonNull(sample);
+    Objects.requireNonNull(sample);
     return new Particle<>(sample.addDetector(new _DetectorSampleMap<>(pFunction)));
   }
 
   @Override
   public <R> IParticle<R> transform(IParticleTransformer<T, R> pParticleTransformer)
   {
-    Objects.nonNull(sample);
+    Objects.requireNonNull(sample);
     return new Particle<>(sample.addDetector(new _DetectorSampleTransform<>(pParticleTransformer)));
   }
 
   public <R> IParticle<R> sequence(Function<T, IEmitter<R>> pFunction)
   {
-    Objects.nonNull(sample);
+    Objects.requireNonNull(sample);
     _DetectorSampleSequence<R> detectorSample = new _DetectorSampleSequence<>(pFunction);
     sample.addDetector(detectorSample);
     return detectorSample.getParticle();
@@ -89,7 +89,7 @@ class Particle<T> implements IParticle<T>
   @Override
   public Supplier<T> toSupplier(IDetector<T> pOnChange)
   {
-    Objects.nonNull(sample);
+    Objects.requireNonNull(sample);
     return new Supplier<T>()
     {
       private AtomicReference<IDetector<T>> detectorRef = new AtomicReference<>();

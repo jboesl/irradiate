@@ -11,7 +11,7 @@ public abstract class Emitter<T> implements IEmitter<T>, IDetector<T>
 {
   private WeakReferences<IDetector<T>> emitters;
 
-  public Emitter()
+  protected Emitter()
   {
     emitters = new WeakReferences<IDetector<T>>()
     {
