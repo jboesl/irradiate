@@ -1,16 +1,18 @@
 package de.adito.irradiate;
 
+import de.adito.irradiate.emitters.CombiningEmitter;
 import de.adito.irradiate.extra.*;
 import org.junit.*;
 
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.*;
 
 /**
  * @author j.boesl
- *         Date: 04.01.16
- *         Time: 18:13
+ * Date: 04.01.16
+ * Time: 18:13
  */
 public class Test_Emitter
 {
@@ -125,6 +127,44 @@ public class Test_Emitter
       SwingUtilities.invokeAndWait(() -> {});
 
     Assert.assertEquals("012345+5", buf.toString());
+  }
+
+  @Test
+  public void combiningTest()
+  {
+    StringBuilder bufCombined = new StringBuilder();
+
+    SimpleEmitter<Integer> x = new SimpleEmitter<>(24);
+    SimpleEmitter<Integer> y = new SimpleEmitter<>(25);
+    Function<Integer, String> intToString =
+        pInteger -> pInteger == null ? "" : String.valueOf((char) ((pInteger % 26) + (int) 'a' - 1));
+    IParticle<String> combinedParticle = new CombiningEmitter<>(x.watch(), y.watch()).watch()
+        .map(entry -> {
+          String result = "(";
+          Supplier<Integer> supplier = entry.getKey();
+          if (supplier != null)
+            result += intToString.apply(supplier.get());
+          result += "|";
+          supplier = entry.getValue();
+          if (supplier != null)
+            result += intToString.apply(supplier.get());
+          result += ") ";
+          return result;
+        })
+        .value(bufCombined::append)
+        .error(throwable -> bufCombined.append(throwable.getMessage()));
+
+    x.setValue(581);
+    y.setValue(100);
+    x.setValue(null);
+    y.setValue(null);
+    x.setValue(24);
+    y.setValue(25);
+
+    x.failure(new Exception("(failureX) "));
+    y.failure(new Exception("(failureY) "));
+
+    Assert.assertEquals("(x|y) (i|y) (i|v) (|v) (|) (x|) (x|y) (failureX) (failureY) ", bufCombined.toString());
   }
 
 }
