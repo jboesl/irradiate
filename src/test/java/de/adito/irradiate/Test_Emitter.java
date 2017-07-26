@@ -137,7 +137,7 @@ public class Test_Emitter
     SimpleEmitter<Integer> x = new SimpleEmitter<>(24);
     SimpleEmitter<Integer> y = new SimpleEmitter<>(25);
     Function<Integer, String> intToString =
-        pInteger -> pInteger == null ? "" : String.valueOf((char) ((pInteger % 26) + (int) 'a' - 1));
+        pInteger -> pInteger == null ? " " : String.valueOf((char) ((pInteger % 26) + (int) 'a' - 1));
     IParticle<String> combinedParticle = new CombiningEmitter<>(x.watch(), y.watch()).watch()
         .map(entry -> {
           String result = "(";
@@ -155,16 +155,15 @@ public class Test_Emitter
         .error(throwable -> bufCombined.append(throwable.getMessage()));
 
     x.setValue(581);
+    x.failure(new Exception("(failureX) "));
     y.setValue(100);
+    y.failure(new Exception("(failureY) "));
     x.setValue(null);
-    y.setValue(null);
     x.setValue(24);
+    y.setValue(null);
     y.setValue(25);
 
-    x.failure(new Exception("(failureX) "));
-    y.failure(new Exception("(failureY) "));
-
-    Assert.assertEquals("(x|y) (i|y) (i|v) (|v) (|) (x|) (x|y) (failureX) (failureY) ", bufCombined.toString());
+    Assert.assertEquals("(x|y) (i|y) (failureX) (|v) (failureY) ( |) (x|) (x| ) (x|y) ", bufCombined.toString());
   }
 
 }
