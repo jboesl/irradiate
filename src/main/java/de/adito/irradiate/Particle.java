@@ -1,6 +1,6 @@
 package de.adito.irradiate;
 
-import de.adito.irradiate.common.FilteredValueException;
+import de.adito.irradiate.common.*;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -26,7 +26,9 @@ class Particle<T> implements IParticle<T>
   @Override
   public IParticle<T> value(Consumer<? super T> pOnValue)
   {
-    Objects.requireNonNull(sample);
+    if (sample == null)
+      throw new DecayedException();
+
     AbstractDetector<T> detector = new AbstractDetector<T>()
     {
       @Override
@@ -43,7 +45,9 @@ class Particle<T> implements IParticle<T>
   @Override
   public IParticle<T> error(Consumer<Throwable> pOnThrowable)
   {
-    Objects.requireNonNull(sample);
+    if (sample == null)
+      throw new DecayedException();
+
     AbstractDetector<T> detector = new AbstractDetector<T>()
     {
       @Override
@@ -60,27 +64,35 @@ class Particle<T> implements IParticle<T>
   @Override
   public IParticle<T> filter(Predicate<? super T> pPredicate)
   {
-    Objects.requireNonNull(sample);
+    if (sample == null)
+      throw new DecayedException();
+
     return new Particle<>(sample.addDetector(new _DetectorSampleFilter(pPredicate)));
   }
 
   @Override
   public <R> IParticle<R> map(Function<? super T, ? extends R> pFunction)
   {
-    Objects.requireNonNull(sample);
+    if (sample == null)
+      throw new DecayedException();
+
     return new Particle<>(sample.addDetector(new _DetectorSampleMap<>(pFunction)));
   }
 
   @Override
   public <R> IParticle<R> transform(IParticleTransformer<T, R> pParticleTransformer)
   {
-    Objects.requireNonNull(sample);
+    if (sample == null)
+      throw new DecayedException();
+
     return new Particle<>(sample.addDetector(new _DetectorSampleTransform<>(pParticleTransformer)));
   }
 
   public <R> IParticle<R> sequence(Function<T, IEmitter<R>> pFunction)
   {
-    Objects.requireNonNull(sample);
+    if (sample == null)
+      throw new DecayedException();
+
     _DetectorSampleSequence<R> detectorSample = new _DetectorSampleSequence<>(pFunction);
     sample.addDetector(detectorSample);
     return detectorSample.getParticle();
@@ -89,7 +101,9 @@ class Particle<T> implements IParticle<T>
   @Override
   public Supplier<T> toSupplier(IDetector<T> pOnChange)
   {
-    Objects.requireNonNull(sample);
+    if (sample == null)
+      throw new DecayedException();
+
     return new Supplier<T>()
     {
       private AtomicReference<IDetector<T>> detectorRef = new AtomicReference<>();
