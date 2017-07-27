@@ -21,7 +21,16 @@ public class CombiningEmitter<T1, T2> extends Emitter<CombiningEmitter.Combined<
   {
     particle1 = pParticle1;
     particle2 = pParticle2;
+  }
 
+  public CombiningEmitter(IEmitter<T1> pEmitter1, IEmitter<T2> pEmitter2)
+  {
+    this(pEmitter1.watch(), pEmitter2.watch());
+  }
+
+  @Override
+  protected void onHot()
+  {
     particle1.value(v -> hit(combined = new Combined<>(() -> v, combined.getSupplier2())));
     particle1.error(throwable -> {
       combined = new Combined<>(null, combined.getSupplier2());
@@ -33,6 +42,13 @@ public class CombiningEmitter<T1, T2> extends Emitter<CombiningEmitter.Combined<
       combined = new Combined<>(combined.getSupplier1(), null);
       failure(throwable);
     });
+  }
+
+  @Override
+  protected void onCold()
+  {
+    particle1 = null;
+    particle2 = null;
   }
 
   @Override
