@@ -1,5 +1,6 @@
 package de.adito.irradiate;
 
+import de.adito.irradiate.common.DecayedException;
 import de.adito.irradiate.emitters.CombiningEmitter;
 import de.adito.irradiate.extra.*;
 import org.junit.*;
@@ -70,6 +71,7 @@ public class Test_Emitter
     StringBuffer bufX = new StringBuffer();
 
     SimpleEmitter<Integer> x = new SimpleEmitter<>(320);
+    //noinspection unused
     IParticle<String> particleX = x.watch()
         .value(v -> {})
         .transform(new DistinctTransformer<>())
@@ -97,10 +99,11 @@ public class Test_Emitter
   @Test
   public void sequenceTest() throws InvocationTargetException, InterruptedException
   {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
 
     SimpleEmitter<Integer> x = new SimpleEmitter<>(0);
 
+    //noinspection unused
     IParticle<String> emitX = x.watch()
         .sequence(v -> {
           SimpleEmitter<String> emitter = new SimpleEmitter<>("" + v);
@@ -130,15 +133,18 @@ public class Test_Emitter
   }
 
   @Test
-  public void combiningTest()
+  public void combiningTest() throws InterruptedException
   {
     StringBuilder bufCombined = new StringBuilder();
 
-    SimpleEmitter<Integer> x = new SimpleEmitter<>(24);
-    SimpleEmitter<Integer> y = new SimpleEmitter<>(25);
+    SimpleEmitter<Integer> x = new SimpleEmitter<>(23);
+    SimpleEmitter<Integer> y = new SimpleEmitter<>(24);
+    IParticle<Integer> watchX = x.watch();
+    IParticle<Integer> watchY = y.watch();
     Function<Integer, String> intToString =
-        pInteger -> pInteger == null ? " " : String.valueOf((char) ((pInteger % 26) + (int) 'a' - 1));
-    IParticle<String> combinedParticle = new CombiningEmitter<>(x.watch(), y.watch()).watch()
+        pInteger -> pInteger == null ? " " : String.valueOf((char) ((pInteger % 26) + (int) 'a'));
+    IParticle<String> combinedParticle = new CombiningEmitter<>(watchX, watchY)
+        .watch()
         .map(combined -> {
           String result = "(";
           Supplier<Integer> supplier = combined.getSupplier1();
@@ -154,15 +160,34 @@ public class Test_Emitter
         .value(bufCombined::append)
         .error(throwable -> bufCombined.append(throwable.getMessage()));
 
-    x.setValue(581);
+    x.setValue(580);
     x.failure(new Exception("(failureX) "));
-    y.setValue(100);
+    y.setValue(99);
     y.failure(new Exception("(failureY) "));
     x.setValue(null);
-    x.setValue(24);
+    x.setValue(23);
     y.setValue(null);
-    y.setValue(25);
+    y.setValue(24);
 
+    combinedParticle.disintegrate();
+    System.gc();
+
+    StringBuilder bufWatchX = new StringBuilder();
+    watchX.value(bufWatchX::append);
+
+    x.setValue(0);
+    y.setValue(0);
+
+    Exception e = null;
+    try {
+      combinedParticle.value(bufCombined::append);
+    }
+    catch (DecayedException pE) {
+      e = pE;
+    }
+
+    Assert.assertNotNull(e);
+    Assert.assertEquals("230", bufWatchX.toString());
     Assert.assertEquals("(x|y) (i|y) (failureX) (|v) (failureY) ( |) (x|) (x| ) (x|y) ", bufCombined.toString());
   }
 
