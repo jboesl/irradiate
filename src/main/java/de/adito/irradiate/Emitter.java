@@ -26,19 +26,6 @@ public abstract class Emitter<T> implements IEmitter<T>, IDetector<T>
     };
   }
 
-  public static <T> IEmitter<T> of(Supplier<T> pValueSupplier)
-  {
-    return new Emitter<T>()
-    {
-      @Override
-      protected T getCurrentValue()
-      {
-        return pValueSupplier.get();
-      }
-    };
-  }
-
-
   public void hit(T pValue)
   {
     emitters.forEach(subscription -> subscription.hit(pValue));
